@@ -66,6 +66,15 @@ DSH Web GUI 的**皮肤插件**：四套配色（蓝 / 橘 / 绿 / 灰）× 明�
     -BackupDir  <path>   旧 insert 改动前的备份目录（默认 <你的备份目录>）
     -Hues       <list>   四个色相（键名或编号），省略则交互选择
 
+### 方式 C：从 GitHub 安装（推荐给其他用户）
+
+    npx -y @deepseek-ai/dsh plugin --profile web add git+https://github.com/seabiscuit29/dsh-ui-skin-wave.git
+
+包内自带挂载补丁，装完重启一次 dsh web 即可。想换配色组合就克隆下来跑安装器：
+
+    git clone https://github.com/seabiscuit29/dsh-ui-skin-wave.git
+    powershell -ExecutionPolicy Bypass -File dsh-ui-skin-wave\install.ps1 -Hues 1,2,5,6
+
 ### 方式 B：手动安装（等价三步）
 
     # 1) 登记依赖（用 link: 而不是 file:）
