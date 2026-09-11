@@ -81,11 +81,11 @@ DSH Web GUI 的**皮肤插件**：四套配色（蓝 / 橘 / 绿 / 灰）× 明�
     cd $env:USERPROFILE\.dsh\profiles\web
     pnpm add link:D:/DSH/dsh-ui-skin-wave
 
-    # 2) 在 profiles\web\cordis.patch.yml 末尾追加三行：
-    #
-    #    - insert:
-    #        - id: dsh-ui-skin-wave
-    #          name: 'dsh-ui-skin-wave'
+    # 2) 把包名加进 profiles\web\package.json 的 dsh.profile.bundles 数组：
+    #        "dsh-ui-skin-wave"
+    #    包根自带的 cordis.patch.yml 会据此完成挂载。
+    #    ⚠ 不要额外往 profile 的 cordis.patch.yml 手写 insert：同一个 entry id
+    #      被"追加"两次会导致 duplicate entry id，dsh 启动即崩。
 
     # 3) 重启 dsh web
 
