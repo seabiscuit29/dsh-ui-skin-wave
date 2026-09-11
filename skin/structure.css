@@ -1,0 +1,66 @@
+/* =====================================================================
+   DSH 皮肤插件 · 结构层（与色相无关）
+   · 调色板（蓝/橘/绿/灰 × 明/暗，共 8 套）由 tools/palettes.mjs 生成，
+     在文件末尾的 /*__PALETTES__*/ 处插入
+   · 全部为增量覆盖：样式标签 + 特效层节点 + body 属性，关闭即 100% 复原
+   ===================================================================== */
+
+/* ---------- P2 页面层：让 body 的底色/渐变透出来 ----------
+   选择器全部走 data-slot 结构（不用哈希类名，抗版本升级） */
+body[data-dsh-skin="ocean"] [data-slot="root"] > *,
+body[data-dsh-skin="ocean"] [data-slot="main.conversation"] > *,
+body[data-dsh-skin="ocean"] [data-slot="conversation.session"] > *,
+body[data-dsh-skin="ocean"] [data-slot="conversation.view"] > *,
+body[data-dsh-skin="ocean"] [data-slot="conversation.composer"] > * {
+  background-color: transparent;
+  background-image: none;
+}
+
+/* ---------- L3 特效层：六边形网格 + 数字波纹 ---------- */
+#dsh-ocean-fx {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+  --dsh-fx: 79, 140, 255;
+  --dsh-fx-grid: .042;
+}
+#dsh-ocean-fx canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+body[data-dsh-skin="ocean"][data-dsh-fx="off"] #dsh-ocean-fx { display: none; }
+/* 排查用：某些版本若仍被不透明容器遮挡，可把特效层强行提到最上层 */
+body[data-dsh-skin="ocean"][data-dsh-fx-top="1"] #dsh-ocean-fx { z-index: 9999; }
+
+/* ---------- P4 设置面板 ---------- */
+.dshsk_section { max-width: 760px; display: flex; flex-direction: column; gap: 14px; color: var(--dsw-alias-label-primary); }
+.dshsk_heading { margin: 0; font-size: 16px; font-weight: 700; }
+.dshsk_intro { margin: 0; font-size: 13px; line-height: 1.7; color: var(--dsw-alias-label-tertiary); }
+.dshsk_row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 14px; border-radius: 12px;
+             background: var(--dsw-alias-bg-layer-2); border: 1px solid var(--dsw-alias-border-l2); }
+.dshsk_text { flex: 0 1 auto; min-width: 0; max-width: min(46%, 320px); }
+.dshsk_label { font-size: 14px; }
+.dshsk_hint { font-size: 12px; color: var(--dsw-alias-label-tertiary); margin-top: 2px; }
+.dshsk_group { display: flex; gap: 6px; flex: 0 1 auto; min-width: 0; }
+/* 配色色条：横向可滑动，隐藏滚动条 */
+.dshsk_stripwrap { display: flex; align-items: center; gap: 2px; flex: 0 1 auto; min-width: 0; }
+.dshsk_strip { display: flex; align-items: center; gap: 6px; overflow-x: auto; padding: 5px 0;
+               scrollbar-width: none; -ms-overflow-style: none; scroll-snap-type: x proximity; scroll-behavior: smooth; }
+.dshsk_strip::-webkit-scrollbar { display: none; }
+.dshsk_strip .dshsk_btn { flex: none; scroll-snap-align: start; }
+/* 色条宽度由 JS 量成"恰好 4 个按钮"，超出部分滚出视野 */
+.dshsk_strip { max-width: 100%; }
+/* 箭头是普通 flex 项（与色条并排），占据真实空间 —— 结构上不可能压住按钮 */
+.dshsk_nav { flex: none; width: 16px; height: 24px; padding: 0; border: 0; margin: 0;
+             display: flex; align-items: center; justify-content: center;
+             background: transparent; cursor: pointer; color: var(--dsw-alias-label-tertiary); }
+.dshsk_nav::before { content: ''; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; }
+.dshsk_nav[data-side="right"]::before { transform: rotate(-45deg); }
+.dshsk_nav[data-side="left"]::before  { transform: rotate(135deg); }
+.dshsk_nav:hover { color: var(--dsw-alias-label-primary); }
+.dshsk_btn[data-dim="true"] { opacity: .5; }
+.dshsk_btn { border: 1px solid var(--dsw-alias-border-l2); background: transparent; color: var(--dsw-alias-label-secondary);
+             font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+/* 选中态：同色柔光 + 隐藏色块（色块与背景同色会看不见，且会把文字挤偏） */
+.dshsk_btn[data-on="true"] { background: var(--dsh-skin-accent, #2563eb); border-color: transparent; color: #fff;
+                             box-shadow: 0 0 0 3px rgba(var(--dsh-skin-accent-rgb, 37, 99, 235), .22); }
+.dshsk_btn[data-on="true"] .dshsk_swatch { display: none; }
+.dshsk_btn:hover { border-color: var(--dsw-alias-border-l3); }
+.dshsk_swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+
+/*__PALETTES__*/

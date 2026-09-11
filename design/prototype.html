@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DSH 首页 · 浅蓝亮色 + 六边形数字波纹</title>
+<!--
+  DSH Web 首页（欢迎页 Hero + Composer）蓝色版原型
+  · 几何：按原截图逐像素测量（原图 1702x568 @DPR1.5 → CSS 1135x379），本文件按 CSS px 还原
+  · 配色：浅蓝亮色为默认皮肤；另附 深海蓝 / 原始配色（对照组）
+  · 特效：鼠标轨迹上泛起"六边形网格波前"数字波纹（canvas 图层，垫在卡片下方）
+  · 单文件、零依赖、无外链资源，双击即可在浏览器打开
+-->
+<style>
+  :root{ --ease:cubic-bezier(.4,0,.2,1) }
+  *,*::before,*::after{ box-sizing:border-box }
+  html,body{ height:100% }
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;
+    background-color:var(--page-bg);
+    background-image:var(--page-image);
+    background-attachment:fixed;
+    color:var(--text-strong);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+
+  /* ============ 皮肤 1：浅蓝亮色（默认） ============ */
+  body[data-skin="light"]{
+    --page-bg:#f2f7ff;
+    --page-image:linear-gradient(180deg,#f9fcff 0%,#e3eeff 100%);
+    --aurora:
+      radial-gradient(920px 460px at 50% -14%, rgba(91,156,255,.30), rgba(91,156,255,0) 62%),
+      radial-gradient(1200px 620px at 50% 118%, rgba(56,189,248,.10), rgba(56,189,248,0) 60%);
+    --surface:linear-gradient(180deg,#ffffff 0%,#fafcff 100%);
+    --surface-border:rgba(47,107,255,.17);
+    --surface-shadow:0 1px 0 rgba(255,255,255,.9) inset, 0 30px 68px -34px rgba(37,99,235,.55), 0 2px 10px -4px rgba(15,45,110,.10);
+    --text-strong:#0e1b33;
+    --text-muted:#7a8ca8;
+    --text-tertiary:#93a3be;
+    --mark:#14305c;
+    --mark-glow:none;
+    --badge-bg:rgba(47,107,255,.10);
+    --badge-border:rgba(47,107,255,.24);
+    --badge-text:#2563eb;
+    --rbtn-bg:#eef4ff;
+    --rbtn-bg-hover:#e2ecff;
+    --rbtn-fg:#35507e;
+    --pill-fg:#24365a;
+    --pill-bg-hover:rgba(47,107,255,.08);
+    --send-bg-empty:linear-gradient(180deg,#c3d9fc,#8fbaf5);
+    --send-fg-empty:#ffffff;
+    --send-bg-full:linear-gradient(180deg,#5b95ff 0%,#2563eb 100%);
+    --send-fg-full:#ffffff;
+    --send-shadow-full:0 8px 22px -8px rgba(37,99,235,.75), 0 0 0 1px rgba(255,255,255,.35) inset;
+    --send-shadow-empty:0 0 0 1px rgba(255,255,255,.45) inset;
+    --switch-bg:rgba(255,255,255,.92);
+    --switch-border:rgba(47,107,255,.18);
+    --fx:79,140,255;
+    --fx-grid:.048;
+  }
+  /* ============ 皮肤 2：深海蓝 ============ */
+  body[data-skin="navy"]{
+    --page-bg:#070b14;
+    --page-image:linear-gradient(180deg,#070b14 0%,#070b14 100%);
+    --aurora:
+      radial-gradient(920px 460px at 50% -14%, rgba(37,99,235,.34), rgba(37,99,235,0) 62%),
+      radial-gradient(1200px 620px at 50% 118%, rgba(56,189,248,.10), rgba(56,189,248,0) 60%);
+    --surface:linear-gradient(180deg,#131d31 0%,#0e1727 100%);
+    --surface-border:rgba(98,150,255,.15);
+    --surface-shadow:0 1px 0 rgba(255,255,255,.035) inset, 0 30px 68px -34px rgba(37,99,235,.85), 0 2px 10px -4px rgba(0,0,0,.6);
+    --text-strong:#e9f0ff;
+    --text-muted:#6b7b9b;
+    --text-tertiary:#7d8cad;
+    --mark:#eaf1ff;
+    --mark-glow:drop-shadow(0 0 14px rgba(96,150,255,.45));
+    --badge-bg:rgba(64,120,255,.16);
+    --badge-border:rgba(98,150,255,.26);
+    --badge-text:#a9c6ff;
+    --rbtn-bg:#1a2440;
+    --rbtn-bg-hover:#212e52;
+    --rbtn-fg:#d8e3f9;
+    --pill-fg:#dbe6ff;
+    --pill-bg-hover:rgba(93,140,255,.12);
+    --send-bg-empty:linear-gradient(180deg,#2b3c60,#21304f);
+    --send-fg-empty:rgba(229,238,255,.62);
+    --send-bg-full:linear-gradient(180deg,#5b95ff 0%,#2563eb 100%);
+    --send-fg-full:#ffffff;
+    --send-shadow-full:0 8px 22px -8px rgba(37,99,235,.95), 0 0 0 1px rgba(120,170,255,.35) inset;
+    --send-shadow-empty:0 0 0 1px rgba(120,170,255,.10) inset;
+    --switch-bg:rgba(12,20,36,.86);
+    --switch-border:rgba(98,150,255,.18);
+    --fx:118,166,255;
+    --fx-grid:.055;
+  }
+  /* ============ 皮肤 3：原始配色（对照组，还原截图，不带特效） ============ */
+  body[data-skin="original"]{
+    --page-bg:#151517;
+    --page-image:none;
+    --aurora:none;
+    --surface:#2c2c2e;
+    --surface-border:transparent;
+    --surface-shadow:none;
+    --text-strong:#f9fafb;
+    --text-muted:#81858c;
+    --text-tertiary:#81858c;
+    --mark:#f9fafb;
+    --mark-glow:none;
+    --badge-bg:#34415b;
+    --badge-border:transparent;
+    --badge-text:#dde5f5;
+    --rbtn-bg:#353638;
+    --rbtn-bg-hover:#3d3e40;
+    --rbtn-fg:#e9eaec;
+    --pill-fg:#e9eaec;
+    --pill-bg-hover:rgba(255,255,255,.06);
+    --send-bg-empty:#435982;
+    --send-fg-empty:#b9bcc2;
+    --send-bg-full:#4d6bfe;
+    --send-fg-full:#ffffff;
+    --send-shadow-full:none;
+    --send-shadow-empty:none;
+    --switch-bg:rgba(38,38,40,.92);
+    --switch-border:rgba(255,255,255,.08);
+    --fx:47,107,255;
+    --fx-grid:0;
+  }
+
+  /* ---------- 背景光晕 ---------- */
+  .aurora{ position:fixed; inset:0; background-image:var(--aurora); pointer-events:none; z-index:0 }
+  /* ---------- 数字波纹图层（垫在内容下方，被卡片遮挡） ---------- */
+  .fx{ position:fixed; inset:0; z-index:1; pointer-events:none; overflow:hidden }
+  .fx canvas{ position:absolute; inset:0; width:100%; height:100%; display:block }
+  body[data-skin="original"] .fx{ display:none }
+
+  /* ---------- 舞台 ---------- */
+  .viewport{ position:relative; z-index:2; min-height:100%; display:flex; align-items:center; justify-content:center; padding:48px 24px }
+  .stage{ width:1032px; max-width:100% }
+
+  /* ---------- Hero ---------- */
+  .hero{ display:flex; align-items:center; justify-content:center; margin-bottom:35px }
+  .mark{ width:44.7px; height:33.3px; color:var(--mark); filter:var(--mark-glow); flex:none }
+  .mark svg{ width:100%; height:100%; display:block; fill:currentColor }
+  .hero h1{ margin:0 0 0 15px; font-size:34px; line-height:41px; font-weight:700; letter-spacing:0; color:var(--text-strong); white-space:nowrap }
+  .badge{ margin-left:11px; height:27px; line-height:25px; padding:0 13px; border-radius:999px; font-size:14px; font-weight:400;
+          background:var(--badge-bg); color:var(--badge-text); border:1px solid var(--badge-border); white-space:nowrap; flex:none }
+
+  /* ---------- 工具条 ---------- */
+  .toolbar{ display:flex; align-items:center; padding-left:9px; margin-bottom:13px }
+  .tb{ display:inline-flex; align-items:center; padding:6px 8px; border:0; border-radius:10px; background:transparent;
+       color:var(--text-strong); font-family:inherit; font-size:16px; line-height:20px; cursor:pointer; white-space:nowrap }
+  .tb:hover{ background:var(--pill-bg-hover) }
+  .tb + .tb{ margin-left:15px }
+  .tb .ic{ flex:none; margin-right:7px; display:block }
+  .tb .chev{ flex:none; margin-left:10px; display:block; color:var(--text-tertiary) }
+  .chev path{ stroke:currentColor }
+
+  /* ---------- Composer ---------- */
+  .composer{
+    height:151px; border-radius:16px; padding:19px 11px 12px;
+    background:var(--surface); border:1px solid var(--surface-border); box-shadow:var(--surface-shadow);
+    display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .input{
+    flex:1 1 auto; min-height:0; width:100%; resize:none; border:0; outline:none; background:transparent;
+    padding:0 8px; margin:0; color:var(--text-strong);
+    font-family:inherit; font-size:18px; line-height:26px;
+  }
+  .input::placeholder{ color:var(--text-muted); opacity:1 }
+
+  .foot{ display:flex; align-items:center; justify-content:space-between; gap:16px }
+  .foot-left,.foot-right{ display:flex; align-items:center }
+  .rbtn{
+    width:37px; height:37px; flex:none; border:0; border-radius:50%; background:var(--rbtn-bg); color:var(--rbtn-fg);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0;
+    transition:background .15s var(--ease)
+  }
+  .rbtn:hover{ background:var(--rbtn-bg-hover) }
+  .rbtn + .rbtn{ margin-left:17px }
+  .rbtn svg{ display:block }
+  .perm{ display:inline-flex; align-items:center; margin-left:20px; padding:6px 8px; border:0; border-radius:10px;
+         background:transparent; color:var(--pill-fg); font-family:inherit; font-size:16px; line-height:20px; cursor:pointer; white-space:nowrap }
+  .perm:hover{ background:var(--pill-bg-hover) }
+  .perm .ic{ flex:none; margin-right:9px; display:block; color:var(--pill-fg); opacity:.92 }
+  .perm .chev{ flex:none; margin-left:11px; display:block; color:var(--text-tertiary) }
+  .model{ display:inline-flex; align-items:center; margin-right:17px; padding:6px 8px; border:0; border-radius:10px;
+          background:transparent; font-family:inherit; font-size:16px; line-height:20px; cursor:pointer; white-space:nowrap }
+  .model:hover{ background:var(--pill-bg-hover) }
+  .model .mn{ color:var(--text-strong) }
+  .model .me{ margin-left:6px; color:var(--text-tertiary) }
+  .model .chev{ margin-left:7px; display:block; color:var(--text-tertiary) }
+  .send{
+    width:45px; height:45px; flex:none; border:0; border-radius:50%; cursor:pointer; padding:0;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--send-bg-empty); color:var(--send-fg-empty); box-shadow:var(--send-shadow-empty);
+    transition:background .18s var(--ease), color .18s var(--ease), box-shadow .18s var(--ease), transform .18s var(--ease)
+  }
+  body[data-filled="1"] .send{ background:var(--send-bg-full); color:var(--send-fg-full); box-shadow:var(--send-shadow-full) }
+  .send:hover{ transform:translateY(-1px) }
+  .send:active{ transform:translateY(0) }
+  .send svg{ display:block }
+
+  /* ---------- 皮肤切换器 ---------- */
+  .skins{
+    position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:6;
+    display:flex; align-items:center; gap:2px; padding:4px; border-radius:999px;
+    background:var(--switch-bg); border:1px solid var(--switch-border);
+    box-shadow:0 10px 30px -12px rgba(15,45,110,.35);
+    font-size:13px; opacity:.62; transition:opacity .2s var(--ease)
+  }
+  .skins:hover{ opacity:1 }
+  .skins button{
+    border:0; background:transparent; color:var(--text-tertiary); font-family:inherit; font-size:13px; line-height:18px;
+    padding:5px 12px; border-radius:999px; cursor:pointer; white-space:nowrap
+  }
+  .skins button[aria-pressed="true"]{ background:var(--rbtn-bg); color:var(--text-strong) }
+  body[data-ui="0"] .skins{ display:none }
+</style>
+</head>
+<body data-skin="light" data-ui="1">
+  <div class="aurora"></div>
+  <div class="fx" aria-hidden="true"><canvas class="fx-grid"></canvas><canvas class="fx-wave"></canvas></div>
+
+  <div class="viewport">
+    <div class="stage">
+
+      <!-- Hero -->
+      <div class="hero">
+        <span class="mark"><svg viewBox="0.13 6.54 49.64 37.43" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M48.8354 10.0479C48.3232 9.79199 48.1025 10.2798 47.8032 10.5278C47.7007 10.6079 47.6143 10.7119 47.5273 10.8076C46.7793 11.624 45.9048 12.1597 44.7622 12.0957C43.0923 12 41.666 12.5356 40.4058 13.8398C40.1377 12.2319 39.2476 11.272 37.8926 10.6558C37.1836 10.3359 36.4668 10.0156 35.9702 9.31982C35.6235 8.82373 35.5293 8.27197 35.356 7.72754C35.2456 7.3999 35.1353 7.06396 34.7651 7.00781C34.3633 6.94385 34.2056 7.2876 34.0479 7.57568C33.418 8.75195 33.1733 10.0479 33.1973 11.3599C33.2524 14.312 34.4736 16.6641 36.8999 18.3359C37.1758 18.5278 37.2466 18.7197 37.1597 19C36.9946 19.5757 36.7974 20.1357 36.624 20.7119C36.5137 21.0801 36.3486 21.1597 35.9624 21C34.6309 20.4321 33.481 19.5918 32.4644 18.5757C30.7393 16.8721 29.1792 14.9917 27.2334 13.52C26.7764 13.1758 26.3193 12.856 25.8467 12.5518C23.8618 10.584 26.1069 8.96777 26.627 8.77588C27.1704 8.57568 26.8159 7.8877 25.0591 7.896C23.3022 7.90381 21.6953 8.50391 19.647 9.30371C19.3477 9.42383 19.0322 9.51172 18.7095 9.58398C16.8501 9.22363 14.9199 9.14355 12.9033 9.37598C9.10596 9.80762 6.07275 11.6396 3.84326 14.7681C1.16455 18.5278 0.53418 22.7998 1.30664 27.2559C2.11768 31.9521 4.46582 35.8398 8.07373 38.8799C11.8159 42.0322 16.1255 43.5762 21.041 43.2803C24.0269 43.104 27.3516 42.6963 31.1016 39.4561C32.0469 39.936 33.0396 40.1279 34.686 40.272C35.9546 40.3921 37.1758 40.208 38.1211 40.0078C39.6021 39.688 39.4995 38.2881 38.9639 38.0322C34.623 35.9678 35.5762 36.8081 34.71 36.1279C36.9155 33.4639 40.2402 30.6958 41.54 21.728C41.6426 21.0161 41.5557 20.5679 41.54 19.9917C41.5322 19.6396 41.6108 19.5039 42.0049 19.4639C43.0923 19.3359 44.1479 19.0317 45.1167 18.4878C47.9292 16.9199 49.064 14.3438 49.3315 11.2559C49.3711 10.7837 49.3237 10.2959 48.8354 10.0479ZM24.3262 37.8398C20.1196 34.4639 18.0791 33.3521 17.2358 33.3999C16.4482 33.4482 16.5898 34.3682 16.7632 34.9678C16.9443 35.5601 17.1812 35.9683 17.5117 36.4878C17.7402 36.832 17.8979 37.3442 17.2832 37.728C15.9282 38.584 13.5728 37.4399 13.4624 37.3838C10.7207 35.7358 8.42822 33.5601 6.81348 30.584C5.25342 27.7197 4.34766 24.6479 4.19775 21.3677C4.1582 20.5757 4.38672 20.2959 5.15869 20.1519C6.17529 19.96 7.22314 19.9199 8.23926 20.0718C12.5327 20.7119 16.1885 22.6719 19.2529 25.7759C21.002 27.5439 22.3252 29.6558 23.6885 31.7202C25.1377 33.9121 26.6978 36 28.6831 37.7119C29.3843 38.312 29.9434 38.7681 30.479 39.104C28.8643 39.2881 26.1699 39.3281 24.3262 37.8398ZM26.3433 24.6001C26.3433 24.248 26.6191 23.9678 26.9658 23.9678C27.0444 23.9678 27.1152 23.9839 27.1782 24.0078C27.2651 24.04 27.3438 24.0879 27.4067 24.1602C27.5171 24.272 27.5801 24.4321 27.5801 24.6001C27.5801 24.9521 27.3042 25.2319 26.9575 25.2319C26.6108 25.2319 26.3433 24.9521 26.3433 24.6001ZM32.6064 27.8799C32.2046 28.0479 31.8027 28.1919 31.4165 28.208C30.8179 28.2397 30.1641 27.9922 29.8096 27.688C29.2583 27.2158 28.8643 26.9521 28.6987 26.1279C28.6279 25.7759 28.6675 25.2319 28.7305 24.9199C28.8721 24.248 28.7144 23.8159 28.2495 23.4238C27.8716 23.104 27.3911 23.0161 26.8633 23.0161C26.666 23.0161 26.4849 22.9277 26.3511 22.856C26.1304 22.7441 25.9492 22.4639 26.1226 22.1201C26.1777 22.0078 26.4458 21.7358 26.5088 21.688C27.2256 21.272 28.0527 21.4077 28.8169 21.7197C29.5259 22.0161 30.0615 22.5601 30.834 23.3281C31.6216 24.2559 31.7632 24.5117 32.2124 25.208C32.5669 25.752 32.8901 26.312 33.1104 26.9521C33.2446 27.3521 33.0713 27.6802 32.6064 27.8799Z"/></svg></span>
+        <h1>探索未至之境</h1>
+        <span class="badge">预览版</span>
+      </div>
+
+      <!-- 工具条 -->
+      <div class="toolbar">
+        <button class="tb" type="button">
+          <svg class="ic" width="20" height="17.3" viewBox="0 0 30 26" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+            <path d="M1.5 22.5V4.4A2.6 2.6 0 0 1 4.1 1.8h7.1a2.6 2.6 0 0 1 2.2 1.2l1.5 2.4a2.6 2.6 0 0 0 2.2 1.2h8.8a2.6 2.6 0 0 1 2.6 2.6v13.3a2.6 2.6 0 0 1-2.6 2.6H4.1a2.6 2.6 0 0 1-2.6-2.6Z"/>
+            <path d="M1.5 11.3h27"/>
+          </svg>
+          <span>DSH</span>
+          <svg class="chev" width="11" height="6" viewBox="0 0 16 9" fill="none" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M1.4 1.6 8 7.4l6.6-5.8"/>
+          </svg>
+        </button>
+
+        <button class="tb" type="button">
+          <svg class="ic" width="18.7" height="18.7" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+            <path d="M16.3 9.4Q25.6 11.6 24.3 18" stroke-linecap="round"/>
+            <path d="M11.7 9.4Q2.4 11.6 3.7 18" stroke-linecap="round"/>
+            <path d="M9.9 22.7Q14 26.4 18.1 22.7" stroke-linecap="round"/>
+            <circle cx="14" cy="6.3" r="3.5"/>
+            <circle cx="5.5" cy="21.3" r="3.5"/>
+            <circle cx="22.5" cy="21.3" r="3.5"/>
+          </svg>
+          <span>标准模式</span>
+          <svg class="chev" width="11" height="6" viewBox="0 0 16 9" fill="none" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M1.4 1.6 8 7.4l6.6-5.8"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Composer -->
+      <div class="composer">
+        <textarea class="input" rows="1" spellcheck="false" aria-label="输入框"
+          placeholder="描述你想要构建的内容, / 调用指令, @ 文件或对话"></textarea>
+
+        <div class="foot">
+          <div class="foot-left">
+            <button class="rbtn" type="button" title="添加附件">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true">
+                <path d="M12 3.6v16.8M3.6 12h16.8"/>
+              </svg>
+            </button>
+            <button class="rbtn" type="button" title="上下文已用 0">
+              <svg width="14.7" height="18.7" viewBox="0 0 22 28" fill="none" stroke="currentColor" aria-hidden="true">
+                <ellipse cx="9.6" cy="14" rx="6.4" ry="12.6" stroke-width="2.7"/>
+                <rect x="6.4" y="8.4" width="9.2" height="11.2" rx="4.6" stroke-width="2.7"/>
+                <path d="M20.2 7.3v8.2q0 5.4-5.6 6.6" stroke-width="2.7" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <button class="perm" type="button">
+              <svg class="ic" width="17.3" height="18.7" viewBox="0 0 26 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M13 1.6 24.2 5.8v7.4c0 6.3-4.6 10.6-11.2 12.9C6.4 23.8 1.8 19.5 1.8 13.2V5.8Z"/>
+                <path d="M7.4 10.2h9.4"/>
+                <path d="M7.4 14.3h6.6"/>
+                <path d="M12.2 21.6 21.6 12"/>
+                <path d="M16.4 21.6h5.2"/>
+              </svg>
+              <span>工作区内修改</span>
+              <svg class="chev" width="11" height="6" viewBox="0 0 16 9" fill="none" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1.4 1.6 8 7.4l6.6-5.8"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="foot-right">
+            <button class="model" type="button">
+              <span class="mn">DeepSeek-V41-Flash</span>
+              <span class="me">High</span>
+              <svg class="chev" width="11" height="6" viewBox="0 0 16 9" fill="none" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1.4 1.6 8 7.4l6.6-5.8"/>
+              </svg>
+            </button>
+            <button class="send" type="button" title="发送消息">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 19.4V6.2"/>
+                <path d="M5.6 12.4 12 6l6.4 6.4"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="skins" role="group" aria-label="配色方案">
+    <button type="button" data-set="light" aria-pressed="true">浅蓝亮色</button>
+    <button type="button" data-set="navy" aria-pressed="false">深海蓝</button>
+    <button type="button" data-set="original" aria-pressed="false">原始配色</button>
+  </div>
+
+<script>
+  /* ============ 皮肤 / 输入状态 ============ */
+  (function () {
+    var params = new URLSearchParams(location.search);
+    var body = document.body;
+    var buttons = Array.prototype.slice.call(document.querySelectorAll('.skins button'));
+
+    function setSkin(name, push) {
+      if (!name) return;
+      body.dataset.skin = name;
+      buttons.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.set === name)); });
+      window.dispatchEvent(new Event('dsh:skin'));
+      if (push) {
+        var q = '?skin=' + name + (body.dataset.ui === '0' ? '&ui=0' : '');
+        history.replaceState(null, '', q);
+      }
+    }
+
+    setSkin(params.get('skin') || 'light', false);
+    if (params.get('ui') === '0') body.dataset.ui = '0';
+    buttons.forEach(function (b) {
+      b.addEventListener('click', function () { setSkin(b.dataset.set, true); });
+    });
+
+    var input = document.querySelector('.input');
+    function sync() { body.dataset.filled = input.value.trim() ? '1' : '0'; }
+    input.addEventListener('input', sync);
+    sync();
+
+    Array.prototype.forEach.call(document.querySelectorAll('.tb, .rbtn, .perm, .model, .send'), function (el) {
+      el.addEventListener('click', function (e) { e.preventDefault(); });
+    });
+  })();
+
+  /* ============ 六边形网格数字波纹 ============ */
+  (function () {
+    var fx = document.querySelector('.fx');
+    if (!fx) return;
+    var gridCv = fx.querySelector('.fx-grid');
+    var waveCv = fx.querySelector('.fx-wave');
+    var gctx = gridCv.getContext('2d');
+    var wctx = waveCv.getContext('2d');
+
+    var R = 19;                       // 六边形外接圆半径(css px)
+    var COL = 1.5 * R;                // 列间距
+    var ROW = Math.sqrt(3) * R;       // 行间距
+    var LIFE = 1000;                  // 单朵波纹寿命(ms)
+    var MAXW = 5;                     // 同时存在的波纹上限
+    var MIN_DIST = 54, MIN_GAP = 95;  // 触发阈值：位移 / 间隔（越大越稀疏）
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var W = 0, H = 0, DPR = 1, rgb = '47,107,255', gridA = 0.085;
+    var cells = [];
+    var waves = [];
+    var running = false, lastTs = 0, lastX = -1e5, lastY = -1e5, lastT = 0;
+
+    function hexPath(ctx, x, y, r) {
+      ctx.beginPath();
+      for (var i = 0; i < 6; i++) {
+        var a = Math.PI / 180 * (60 * i);
+        var px = x + r * Math.cos(a), py = y + r * Math.sin(a);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+    }
+
+    function readTheme() {
+      var cs = getComputedStyle(document.body);
+      rgb = (cs.getPropertyValue('--fx') || '47,107,255').trim();
+      gridA = parseFloat(cs.getPropertyValue('--fx-grid')) || 0;
+    }
+
+    function build() {
+      readTheme();
+      DPR = Math.min(window.devicePixelRatio || 1, 2);
+      W = fx.clientWidth; H = fx.clientHeight;
+      if (!W || !H) return;
+      [gridCv, waveCv].forEach(function (c) {
+        c.width = Math.round(W * DPR); c.height = Math.round(H * DPR);
+        c.getContext('2d').setTransform(DPR, 0, 0, DPR, 0, 0);
+      });
+      cells.length = 0;
+      gctx.clearRect(0, 0, W, H);
+      var cols = Math.ceil(W / COL) + 2, rows = Math.ceil(H / ROW) + 2;
+      gctx.lineWidth = 1;
+      gctx.strokeStyle = 'rgba(' + rgb + ',' + gridA + ')';
+      for (var c = -1; c <= cols; c++) {
+        var x = c * COL;
+        var yOff = ((c % 2) + 2) % 2 ? ROW / 2 : 0;
+        for (var r = -1; r <= rows; r++) {
+          var y = r * ROW + yOff;
+          cells.push(x, y);
+          hexPath(gctx, x, y, R - 1.3);
+          gctx.stroke();
+        }
+      }
+    }
+
+    function spawn(x, y, power, scale) {
+      if (reduce) return;
+      waves.push({ x: x, y: y, t: 0, p: power || 1, k: scale || 1 });
+      if (waves.length > MAXW) waves.shift();
+      if (!running) { running = true; lastTs = 0; requestAnimationFrame(frame); }
+    }
+
+    function frame(ts) {
+      if (!lastTs) lastTs = ts;
+      var dt = Math.min(48, ts - lastTs);
+      lastTs = ts;
+      wctx.clearRect(0, 0, W, H);
+      var alive = 0;
+
+      for (var i = 0; i < waves.length; i++) {
+        var w = waves[i];
+        w.t += dt;
+        var life = LIFE * w.p;
+        if (w.t >= life) continue;
+        alive++;
+        var prog = w.t / life;
+        var front = (22 + 150 * Math.pow(prog, 0.72)) * w.k;
+        var sig = (13 + 17 * prog) * Math.sqrt(w.k);
+        var lo = front - 3 * sig, hi = front + 3 * sig;
+        var amax = 0.72 * (1 - prog);
+        var i2 = sig * sig;
+
+        for (var k = 0; k < cells.length; k += 2) {
+          var cx = cells[k], cy = cells[k + 1];
+          var dx = cx - w.x, dy = cy - w.y;
+          var d2 = dx * dx + dy * dy;
+          if (d2 < lo * lo || d2 > hi * hi) continue;
+          var d = Math.sqrt(d2);
+          var diff = d - front;
+          var g = Math.exp(-(diff * diff) / i2);
+          var a = amax * g;
+          if (a < 0.02) continue;
+          hexPath(wctx, cx, cy, R - 1.6);
+          wctx.fillStyle = 'rgba(' + rgb + ',' + (a * 0.16).toFixed(3) + ')';
+          wctx.fill();
+          wctx.strokeStyle = 'rgba(' + rgb + ',' + (a > 0.72 ? 0.72 : a).toFixed(3) + ')';
+          wctx.lineWidth = 1.15;
+          wctx.stroke();
+        }
+
+        if (prog < 0.66) {
+          var fp = prog / 0.66;                                        // 闪光窗口内进度
+          var ca = Math.min(1, fp / 0.10) * Math.pow(1 - fp, 0.85);    // 快起 → 慢落
+          var rad = (6 + 10 * fp) * w.k;
+          var grd = wctx.createRadialGradient(w.x, w.y, 0, w.x, w.y, rad * 1.9);
+          grd.addColorStop(0, 'rgba(255,255,255,' + (0.38 * ca).toFixed(3) + ')');
+          grd.addColorStop(0.30, 'rgba(' + rgb + ',' + (0.34 * ca).toFixed(3) + ')');
+          grd.addColorStop(1, 'rgba(' + rgb + ',0)');
+          wctx.fillStyle = grd;
+          wctx.beginPath();
+          wctx.arc(w.x, w.y, rad * 1.9, 0, 6.2832);
+          wctx.fill();
+        }
+      }
+
+      var keep = [];
+      for (var j = 0; j < waves.length; j++) if (waves[j].t < LIFE * waves[j].p) keep.push(waves[j]);
+      waves = keep;
+
+      if (alive || waves.length) { requestAnimationFrame(frame); }
+      else { running = false; lastTs = 0; wctx.clearRect(0, 0, W, H); }
+    }
+
+    window.addEventListener('mousemove', function (e) {
+      var now = performance.now();
+      var dx = e.clientX - lastX, dy = e.clientY - lastY;
+      if (dx * dx + dy * dy < MIN_DIST * MIN_DIST) return;
+      if (now - lastT < MIN_GAP) return;
+      lastX = e.clientX; lastY = e.clientY; lastT = now;
+      spawn(e.clientX, e.clientY, 1);
+    }, { passive: true });
+
+    // 点击：一圈更大更慢的波纹
+    window.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      spawn(e.clientX, e.clientY, 1.5, 1.5);
+    }, { passive: true });
+
+    var rt = 0;
+    window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(build, 180); });
+    window.addEventListener('dsh:skin', function () { build(); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(build);
+    build();
+    setTimeout(function () { spawn(window.innerWidth * 0.17, window.innerHeight * 0.40, 1.3); }, 320);
+  })();
+</script>
+</body>
+</html>

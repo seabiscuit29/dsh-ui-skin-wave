@@ -1,0 +1,12 @@
+# dsh bundle patch: mounts this skin plugin into a profile's layer stack.
+#
+# package.json declares dsh.bundle.patch pointing here, so
+#   npx -y @deepseek-ai/dsh plugin --profile web add <spec>
+# registers this package in the profile's dsh.profile.bundles and the row
+# below mounts it. No hand-written profile patch is needed.
+#
+# The entry id must stay unique across the whole composed tree: remove any
+# hand-written profile insert with the same id before enabling this bundle.
+- insert:
+    - id: dsh-ui-skin-wave
+      name: 'dsh-ui-skin-wave'
