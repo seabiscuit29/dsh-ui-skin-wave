@@ -14,11 +14,6 @@ in both light and dark, plus a toggleable **hexagonal ripple** effect that follo
 
 ## Screenshots
 
-| Settings - deep blue | Settings - light (gray selected) |
-|---|---|
-| ![settings dark](design/ui-settings-blue.png) | ![settings light](design/ui-settings-light.png) |
-| Six-hue strip, four toggles, live diagnostic line | The strip scrolls; the active pill gets a matching glow |
-
 **New-session page - blue.** Moving the mouse spreads a hexagonal ripple across the page:
 
 ![new session blue](design/preview.png)
@@ -26,6 +21,13 @@ in both light and dark, plus a toggleable **hexagonal ripple** effect that follo
 **New-session page - purple.** Same layout, different palette, everything else identical:
 
 ![new session purple](design/ui-home-ripple.png)
+
+**Skin settings.** A six-hue strip, four toggles and a live diagnostic line; in light mode the active pill gets a matching glow:
+
+| Settings - deep blue | Settings - light (gray selected) |
+|---|---|
+| ![settings dark](design/ui-settings-blue.png) | ![settings light](design/ui-settings-light.png) |
+| Six-hue strip, four toggles, live diagnostic line | The strip scrolls; the active pill gets a matching glow |
 
 > Session names, project names and sample content in these screenshots are **demo data**, not real.
 
