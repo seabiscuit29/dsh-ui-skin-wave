@@ -1,10 +1,31 @@
 # dsh-ui-skin-wave
 
-DSH Web GUI 的**皮肤插件**：四套配色（蓝 / 橘 / 绿 / 灰）× 明暗两系，外加页面上可开关的**六边形数字波纹**特效。
+**中文** | [English](README.en.md)
+
+DSH Web GUI 的**皮肤插件**：六套配色（蓝 / 橘 / 绿 / 灰 / 紫 / 玫红）× 明暗两系，外加页面上可开关的**六边形数字波纹**特效。
 
 - 完全**增量**：一个 style 标签、一个特效层 div、三个 body 属性；关闭即 100% 恢复 DSH 默认外观；
 - 不改动任何 DSH 上游文件，DSH 升级不会覆盖它；
 - 深浅色系交给 DSH 自带的「设置 → 通用 → 外观」，插件只管色相。
+
+---
+
+## 界面预览
+
+| 设置页 · 深海蓝 | 设置页 · 浅色（灰色选中） |
+|---|---|
+| ![设置页 深色](design/ui-settings-blue.png) | ![设置页 浅色](design/ui-settings-light.png) |
+| 六色色条 · 四个开关 · 底部实时诊断行 | 色条可横滑，选中态带同色柔光 |
+
+**新会话页 · 蓝色** —— 鼠标划过时，六边形波纹铺满整页：
+
+![新会话页 蓝色](design/preview.png)
+
+**新会话页 · 紫色** —— 同一布局换一种配色，其余完全一致：
+
+![新会话页 紫色](design/ui-home-ripple.png)
+
+> 截图中的会话名、项目名与示例内容均为**演示用途**，非真实数据。
 
 ---
 
@@ -13,9 +34,31 @@ DSH Web GUI 的**皮肤插件**：四套配色（蓝 / 橘 / 绿 / 灰）× 明�
 | 项 | 要求 |
 |---|---|
 | DSH | Web GUI 可正常启动（dsh web） |
-| profile | 默认 web profile：%USERPROFILE%\.dsh\profiles\web |
+| Node.js | 18+（构建与安装脚本都用 Node 实现） |
+| profile | 默认 web profile —— Windows：%USERPROFILE%\.dsh\profiles\web；macOS / Linux：~/.dsh/profiles/web |
 | pnpm | 可在 profile 目录执行（DSH 自带环境即可） |
 | 权限 | 能写 profile 目录（克隆位置随意，构建链用的是仓库内相对路径） |
+
+### 平台支持
+
+**插件运行时是纯浏览器 JS，三个平台完全一致** —— 皮肤就是一段 CSS 加一个 canvas 特效层，不碰系统 API。
+需要区分的只有**安装脚本**，它由同一份 Node 实现驱动：
+
+| 平台 | 安装命令 |
+|---|---|
+| Windows | powershell -ExecutionPolicy Bypass -File install.ps1（转发到 install.mjs） |
+| **macOS** | ./install.sh 或 node install.mjs |
+| Linux | ./install.sh 或 node install.mjs |
+
+| 平台相关点 | 处理 |
+|---|---|
+| PowerShell 在 macOS 不存在 | 安装逻辑重写为 install.mjs，PowerShell 脚本只剩转发壳 |
+| 路径分隔符 | 全部用 node:path / os.homedir()，无硬编码盘符 |
+| npx 在 Windows 上是 npx.cmd | 按 process.platform 选择可执行名 |
+| macOS 换行符 | install.sh 为纯 LF（且已置可执行位） |
+| 视网膜屏 | canvas 按 min(devicePixelRatio, 2) 缩放，Retina 下清晰不发虚 |
+| 触控板点击 | 走 pointerdown，鼠标 / 触控板 / 触摸行为一致 |
+| 系统「减少动态效果」 | macOS 辅助功能的 Reduce Motion 与 Windows 一样被识别（只显示网格、不生成波纹） |
 
 ---
 
@@ -23,13 +66,18 @@ DSH Web GUI 的**皮肤插件**：四套配色（蓝 / 橘 / 绿 / 灰）× 明�
 
 ### 方式 A：一键脚本（推荐）
 
+    # Windows
     powershell -ExecutionPolicy Bypass -File install.ps1
+
+    # macOS / Linux（二者等价，install.sh 只是转发）
+    ./install.sh
+    node install.mjs
 
 脚本做四件事，且**幂等**（重复执行安全）：
 
 1. 校验插件源（package.json 与 lib/client.js）；
 2. **让你从 6 种候选色里选 4 种作为「首选四色」**，并按选择重新构建插件 bundle（6 套调色板都会打进包里，运行时随时可换）；
-3. 用 pnpm 把本目录登记为 web profile 的依赖，协议 **link:**（软链）；
+3. 通过官方通道把本包登记进 profile（npx -y @deepseek-ai/dsh plugin --profile web add link:<本目录>），被拒时自动回退 file:；也支持 --pnpm 改走 pnpm + 写入 dsh.profile.bundles；
 4. 清理旧名（dsh-client-ui-skin）残留：从 profile 依赖里摘掉旧包、从 cordis.patch.yml 删掉旧的手写 insert（改动前备份）。
 
 > 本包**自带挂载**（package.json 的 `dsh.bundle.patch` → 包根 `cordis.patch.yml`），所以安装器**不再往 profile 手写 insert** —— 手写 insert 与包内挂载若用同一 id，会造成 duplicate entry id 导致启动失败。
@@ -60,11 +108,14 @@ DSH Web GUI 的**皮肤插件**：四套配色（蓝 / 橘 / 绿 / 灰）× 明�
 
 可选参数：
 
-    -ProfileDir <path>   web profile 目录（默认 %USERPROFILE%\.dsh\profiles\web）
-    -SourceDir  <path>   插件源目录（默认 = 脚本所在目录）
-    -BuildDir   <path>   构建链目录（默认 = 包根，构建脚本在 包根\build）
-    -BackupDir  <path>   旧 insert 改动前的备份目录（默认 <你的备份目录>）
-    -Hues       <list>   四个色相（键名或编号），省略则交互选择
+跨平台通用参数（install.mjs）：
+
+    --hues <list>     四个色相（键名或编号），省略则交互选择
+    --profile <dir>   web profile 目录（默认 ~/.dsh/profiles/web）
+    --pnpm            改用 pnpm 注册 + 写入 dsh.profile.bundles
+    --dry-run         只打印计划，不改动任何文件
+
+Windows 转发壳同时接受 PowerShell 风格写法：-Hues / -DryRun / -ProfileDir / -Pnpm。
 
 ### 方式 C：从 GitHub 安装（推荐给其他用户）
 
@@ -172,7 +223,8 @@ tools\try-skin.js 是自包含的试验版，粘进浏览器 Console 即可预�
 
     dsh-ui-skin-wave/
     ├─ package.json / cordis.patch.yml    包契约与自挂载补丁
-    ├─ install.ps1                        一键安装（选色 + 构建 + 注册 + 清旧名）
+    ├─ install.mjs                        一键安装（选色 + 构建 + 注册 + 清旧名，跨平台）
+    ├─ install.sh / install.ps1           macOS·Linux / Windows 转发壳
     ├─ lib/index.js                       宿主半区（空实现，仅占位）
     ├─ lib/client.js                      ← 生成物：浏览器半区（样式 + 特效 + 设置面板）
     ├─ skin/structure.css                 与色相无关的结构样式（手写）

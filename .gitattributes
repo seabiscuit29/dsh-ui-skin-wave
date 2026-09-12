@@ -1,0 +1,17 @@
+# Keep every text file LF in the repository AND in the working tree.
+# Windows' core.autocrlf=true would otherwise rewrite install.sh to CRLF, and
+# macOS then fails with: /bin/sh^M: bad interpreter.
+* text=auto eol=lf
+
+# Explicit (belt and braces) for the files that must stay LF:
+*.sh    text eol=lf
+*.mjs   text eol=lf
+*.js    text eol=lf
+*.json  text eol=lf
+*.yml   text eol=lf
+*.css   text eol=lf
+*.md    text eol=lf
+*.ps1   text eol=lf
+
+# Binary assets must never be converted.
+*.png   binary
