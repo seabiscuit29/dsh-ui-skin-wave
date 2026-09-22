@@ -98,6 +98,22 @@ for (const b of rows) {
     console.log('  ✓ 点击 [' + b.label + ']  → skin=' + (d.dshSkin || '-') + ' mode=' + (d.dshMode || '-') + ' fx=' + (d.dshFx || '-'));
   } catch (e) { console.log('  ✗ 点击 [' + b.label + '] 抛错: ' + e.message); fail++; }
 }
+// 断言：关闭「波纹特效」只去掉涟漪，背景六边形网格必须保留（回归用例）
+{
+  const on = collect().find((x) => x.label === '皮肤 → 开');
+  const off = collect().find((x) => x.label === '波纹特效 → 关');
+  if (!on || !off) { console.log('断言 关波纹保留网格 → 按钮缺失 ✗'); fail++; }
+  else {
+    on.fn();
+    const fxBefore = document.body.dataset.dshFx;
+    off.fn();
+    const fxAfter = document.body.dataset.dshFx;
+    const rpAfter = document.body.dataset.dshRipple;
+    const ok = fxBefore === 'on' && fxAfter === 'on' && rpAfter === 'off';
+    console.log('断言 关波纹保留网格 → 特效层 fx=' + fxAfter + ' 波纹 ripple=' + rpAfter + (ok ? ' ✓' : ' ✗'));
+    if (!ok) fail++;
+  }
+}
 // 断言：配色行恰好 4 个按钮，且每个都能切出不同的 dsh-hue
 const hueBtns = collect().filter((b) => b.label && b.label.indexOf('配色') === 0);
 console.log('断言 配色色条按钮数 = ' + hueBtns.length + (hueBtns.length === 6 ? ' ✓（全部可选）' : ' ✗'));
